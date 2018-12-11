@@ -38,7 +38,7 @@ an effective and easy to grasp way.\newpage
 The new artifacts are mathematically modeled and their applications are demonstrated in numerical examples.
 \section{Research literature}
 Hyndman Rob/Athanasopoulos George: Forecasting Principles and
-Practice
+Practice \newline
 Lawrence Michael/O'Connor Marcus: Sales forecasting updates:
 how good are they in practice?
 
@@ -114,4 +114,313 @@ attributes(xSD01ABC.sflm)
 plot(xSD01ABC.svlm$residuals) # Plotting svlm & sflm residuals
 plot(xSD01ABC.sflm$residuals)
 ```
+
+\subsection{Task 6}
+ Performing numeric and factor regressions
+
+```{r SingleVariables, collapse=T, fig.height=3, fig.width=5}
+ xSD01ABC1.svlm <- NULL # Single linear regression
+ xSD01ABC1.svlm <- lm(ABC~Month,xSD01Ext.xts)
+ summary(xSD01ABC1.svlm)
+ 
+ xSD01ABC1.sflm <- NULL # Single linear factor regression
+ xSD01ABC1.sflm <- lm(ABC~as.factor(Month),xSD01Ext.xts)
+ summary(xSD01ABC1.sflm)
+ 
+ plot(xSD01ABC1.svlm$residuals)
+ plot(xSD01ABC1.sflm$residuals)
+
+```
+
+\subsection{Task 7}
+Performing multi-factor regressions
+
+```{r Multi, collapse=T, fig.height=3, fig.width=5}
+xSD01ABC.mflm <- NULL # Multi-factor linear regression
+xSD01ABC.mflm <- lm(ABC~as.factor(wDay)+as.factor(Month)+as.factor(Year),xSD01Ext.xts)
+summary(xSD01ABC.mflm)
+
+ plot(xSD01ABC.mflm$residuals)
+```
+
+\subsection{Task 8}
+Performing multi-factor regressions 
+
+```{r multi, collapse=T, fig.height=3, fig.width=5}
+xSD01ABC1.mflm <- NULL # Multi-factor multinomial linear regression
+xSD01ABC1.mflm <- lm(ABC~as.factor(wDay)+as.factor(Month)*as.factor(Year),xSD01Ext.xts)
+summary(xSD01ABC1.mflm)
+
+plot(xSD01ABC1.mflm$residuals)
+
+```
+
+\subsection{Task 9}
+Multinomial regression-based forecasting the daily sales volumes for the next year
+
+```{r regressionBasedOnNextYear, collapse=T, fig.height=3, fig.width=5}
+ PlanPeriod.xts<-NULL # Generating an indexed xts-object
+ PlanPeriod.xts<-as.xts(seq(as.Date("2022-01-01"),
+ as.Date("2022-12-31"),by='day'))
+ PlanPeriod.xts$Year<-c(2)
+ PlanPeriod.xts$Month<-as.factor(format(index(PlanPeriod.xts),"%m"))
+ PlanPeriod.xts$wDay<-as.factor(format(index(PlanPeriod.xts),"%u"))
+ PP.xts<-NULL
+ PP.xts<-subset(PlanPeriod.xts,!(PlanPeriod.xts$wDay %in% c(6,7)))
+
+```
+
+\subsection{Task 10}
+Multi-factor regression-based forecasting
+
+```{r perdiction, collapse=T, fig.height=3, fig.width=5}
+ xSD01ABC1.mffc<-NULL # Generating predictions
+ xSD01ABC1.mffc<-predict(xSD01ABC1.mflm,PP.xts,interval = "confidence")
+ head(xSD01ABC1.mffc)
+  xSD01ABC1.mffc[1,1]
+  xSD01ABC1.mffc[1,2] # lower (lwr) bound
+  xSD01ABC1.mffc[1,3] # upper (upr) bound
+  sum(xSD01ABC1.mffc[,1]) # Sum of sales forecasts
+  apply.quarterly(xSD01ABC1.mffc[,1],FUN = sum)# Quarterly forecasts
+  apply.monthly(xSD01ABC1.mffc[,1],FUN = sum) # Monthly forecasts
+  
+```
+
+Historical calibration problem: 1-year sales forecast of 170750.5 is due to the
+historical calibration similar to last years??? sales volumes
+```{r , collapse=T, fig.height=3, fig.width=5}
+ plot(xSD01ABC1.mffc[,1],type="l") # Plotting predictions
+ plot(cumsum(xSD01ABC1.mffc[,1]),type="l")
+ lines(cumsum(xSD01ABC1.mffc[,2]))
+ lines(cumsum(xSD01ABC1.mffc[,3]))
+```
+
+Plotting quaterly and monthly predictions:
+
+```{r,  collapse=T, fig.height=3, fig.width=5}
+plot(cumsum(apply.quarterly(xSD01ABC1.mffc[,1],FUN = sum)),type="b")#Q
+lines(cumsum(apply.quarterly(xSD01ABC1.mffc[,2],FUN = sum)),type="b")
+lines(cumsum(apply.quarterly(xSD01ABC1.mffc[,3],FUN = sum)),type="b")
+plot(cumsum(apply.monthly(xSD01ABC1.mffc[,1],FUN = sum)),type="b") #M
+
+```
+
+
+\subsection{Task 11}
+Quarterly xts-time series xSQ01.xts: Generating lower frequency data (e.g.
+quarterly sales volumes) via aggregating daily data by using the apply.quarterly() function
+
+```{r, collapse=T, fig.height=3, fig.width=5}
+
+ xSQ01.xts<-apply.quarterly(xSD01.xts$A,sum) # Quarterly sales volumes
+ xSQ01.xts<-cbind(xSQ01.xts,apply.quarterly(xSD01.xts$B,sum),
+ apply.quarterly(xSD01.xts$C,sum),apply.quarterly(xSD01.xts$ABC,sum))
+ xSQ01.xts
+ apply.yearly(xSD01.xts$ABC,sum)
+ 
+ plot(xSQ01.xts)
+```
+
+
+\subsection{Task 12}
+Regressing the quarterly sales volumes (analogously to the daily sales volumes)
+w.r.t. predictable calendar information (e.g. quarters) in form of categorical variables
+
+```{r, collapse=T, fig.height=3, fig.width=5}
+ xSQ01Ext.xts<-NULL # Extending the quarterly data base
+ xSQ01Ext.xts<-xSQ01.xts
+ xSQ01Ext.xts$Quarter<-as.factor(quarters(index(xSQ01.xts)))
+ xSQ01Ext.xts
+xSQ01ABC.sflm <- NULL # Single-factor linear regression
+xSQ01ABC.sflm <- lm(ABC~as.factor(Quarter),xSQ01Ext.xts)
+summary(xSQ01ABC.sflm)
+
+```
+
+\subsection{Task 13}
+Regressing quarterly sales data without (w/o) intercept term
+
+```{r, collapse=T, fig.height=3, fig.width=5}
+xSQ01ABC1.sflm <- NULL # Single factor linear model
+xSQ01ABC1.sflm <- lm(ABC~0+as.factor(Quarter),xSQ01Ext.xts)
+summary(xSQ01ABC1.sflm)
+attributes(xSQ01ABC1.sflm)
+sum(xSQ01ABC1.sflm$coefficients)
+plot(xSQ01ABC1.sflm)
+xSQ01ABC1.sflm$model
+model.matrix(xSQ01ABC1.sflm)
+```
+
+
+
+\subsection{Task 14}
+Modeling quarterly sales volumes as Gaussian stochastic processes which are
+completely specified by the mean vector and the volatility vector in the case of independently distributed sales volumes in the different quarters
+
+```{r, collapse=T, fig.height=3, fig.width=5}
+# Defining and filling of two matrices and an array
+ xSQ01ABC_BLY.m<-matrix(coredata(xSQ01.xts[1:4,4]),1,4,byrow=T)
+ dimnames(xSQ01ABC_BLY.m)<-list(c("ABC"),c("Q1","Q2","Q3","Q4"))
+ xSQ01ABC_LY.m<-matrix(coredata(xSQ01.xts[5:8,4]),1,4,byrow=T)
+ dimnames(xSQ01ABC_LY.m)<-list(c("ABC"),c("Q1","Q2","Q3","Q4"))
+ xSQ01ABC.a<-array(c(xSQ01ABC_LY.m,xSQ01ABC_BLY.m),dim=c(1,4,2))
+ dimnames(xSQ01ABC.a)<-list(c("ABC"),c("Q1","Q2","Q3","Q4"),c("LY","BLY"))
+ t(xSQ01ABC.a[1,,])
+ 
+ 
+# Calibrating the mean vector (location parameters)
+ E_xSQ01ABC.m<-matrix(0,1,4)
+ for(j in 1:4) E_xSQ01ABC.m[1,j]<-mean(xSQ01ABC.a[1,j,])
+ dimnames(E_xSQ01ABC.m)<-list(c("ABC"),c("Q1","Q2","Q3","Q4"))
+ E_xSQ01ABC.m
+ 
+# Calibrating the volatility vector (dispersion parameters)
+ V_xSQ01ABC.m<-matrix(0,1,4)
+ for(j in 1:4) V_xSQ01ABC.m[1,j]<-sd(xSQ01ABC.a[1,j,])
+ dimnames(V_xSQ01ABC.m)<-list(c("ABC"),c("Q1","Q2","Q3","Q4"))
+ V_xSQ01ABC.m 
+ 
+  CV_xSQ01ABC.m<-V_xSQ01ABC.m/E_xSQ01ABC.m # Coefficient of variation
+  CV_xSQ01ABC.m
+  
+   CV_xSQ01ABC1.m<-CV_xSQ01ABC.m
+ CV_xSQ01ABC1.m[CV_xSQ01ABC1.m<0.05]<-0.05 # Setting min. CV to 5 %
+ CV_xSQ01ABC1.m
+ 
+  V_xSQ01ABC1.m<-V_xSQ01ABC.m
+ V_xSQ01ABC1.m<-CV_xSQ01ABC1.m*E_xSQ01ABC.m
+ V_xSQ01ABC1.m
+ 
+ Sales<-seq(20000, 70000, length=100) # Normal density distributions
+ plot(Sales,dnorm(Sales,E_xSQ01ABC.m[2],V_xSQ01ABC1.m[2]),col="red")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[1], V_xSQ01ABC1.m[1]),col="black")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[3],V_xSQ01ABC1.m[3]),col="green")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[4],V_xSQ01ABC1.m[4]),col="blue")
+ legend("topright", legend=c("Q1","Q2","Q3","Q4"),col=1:4,lty=1)
+ 
+  plot(Sales,dnorm(Sales,E_xSQ01ABC.m[2],V_xSQ01ABC1.m[2]), # Mean/Vola
+ col="red",type="l",ylab="Density")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[1],V_xSQ01ABC1.m[1]),col="black")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[3],V_xSQ01ABC1.m[3]),col="green")
+ lines(Sales,dnorm(Sales,E_xSQ01ABC.m[4],V_xSQ01ABC1.m[4]),col="blue")
+ legend("topright", legend=c("Q1","Q2","Q3","Q4"),col=1:4,lty=1)
+```
+
+
+\subsection{Task 15}
+Probabilistic Budgeting: Stochastic process modeling allows calculating the density function of the annual sales volumes (probabilistic budgeting) analytically by
+temporally aggregating the mean vector elements with the linear form and the volatility vector elements with the quadratic form
+
+```{r, collapse=T, fig.height=3, fig.width=5}
+ PlanTrajectABC<-cumsum(E_xSQ01ABC.m) # Linear temp. aggregation
+ PlanTrajectABC
+
+ plot(PlanTrajectABC)
+
+ BudgetABC<-PlanTrajectABC[4] # Setting the sales budget
+ BudgetABC
+
+
+ PlanVolaABC<-sqrt(cumsum((V_xSQ01ABC.m)^2)) # Quadratic temp. aggreg.
+ PlanVolaABC
+
+ lines(PlanTrajectABC+PlanVolaABC)
+ lines(PlanTrajectABC-PlanVolaABC)
+
+ PlanVolaABC1<-sqrt(cumsum((V_xSQ01ABC1.m)^2)) # Volatility adjustment
+ PlanVolaABC1
+
+ plot(PlanTrajectABC)
+ lines(PlanTrajectABC+PlanVolaABC1)
+ lines(PlanTrajectABC-PlanVolaABC1)
+
+# Trajectory and corridor plotting
+ plot(PlanTrajectABC,col=1:4,xlim=c(1,4),ylim=c(0,200000),xaxt='n',
+ xlab = "Future Quarters", ylab = "Cumulated sales")
+ axis(1, at = seq(1, 4, by = 1))
+ lines(PlanTrajectABC+PlanVolaABC)
+ lines(PlanTrajectABC-PlanVolaABC)
+# Density function plotting
+ plot(seq(160000, 180000, length=100), dnorm(seq(160000, 180000,
+length=100),PlanTrajectABC[4],PlanVolaABC[4]), type="l",
+ xlab="Sales", ylab="Density", main="plot()") # Density plot ???ABC
+ plot(seq(160000, 180000, length=100), pnorm(seq(160000, 180000,
+length=100),PlanTrajectABC[4],PlanVolaABC[4])) # Cum.Dens.plot ???ABC
+ plot(seq(160000, 180000, length=100), dnorm(seq(160000, 180000,
+length=100),PlanTrajectABC[4],PlanVolaABC1[4])) # Density plot ???ABC1
+# Mean (location) and volatility (dispersion) parameter plotting
+ plot(CV_xSQ01ABC1.m,E_xSQ01ABC.m,col=1:4,ylim=c(0,70000),
+ xlim=c(0,5000), xlab = "Sales at risk", ylab = "Expected sales")
+ legend("topright", legend=c("Q1","Q2","Q3","Q4"),col=1:4,lty=1)
+
+```
+
+
+\subsection{Task 16}
+
+ Year-end forecasting and probabilistic control over time
+ 
+```{r, collapse=T, fig.height=3, fig.width=5}
+ AA_xSQ01ABC.m<-matrix(0,1,4) # Accumulated Actual
+ RE_xSQ01ABC.m<-matrix(0,1,4) # Remaining Expectations
+ CF_xSQ01ABC.m<-matrix(0,1,4) # Conditional Forecast
+ BFD_xSQ01ABC.m<-matrix(0,1,4) # Budget-Forecast Deviation
+ BFDra_xSQ01ABC.m<-matrix(0,1,4) # BFD risk-adjusted
+ RV_xSQ01ABC.m<-matrix(0,1,4) # Remaining Volatility
+ PrBFDra_xSQ01ABC.m<-matrix(0,1,4) # Probability BFDra
+ (AA_xSQ01ABC.m[1]<-c(42234.86)) #Y-end forecast & control after Q1
+ (RE_xSQ01ABC.m[1]<- sum(E_xSQ01ABC.m[2:4]))
+ (CF_xSQ01ABC.m[1]<-AA_xSQ01ABC.m[1]+RE_xSQ01ABC.m[1])
+ (BFD_xSQ01ABC.m[1]<-CF_xSQ01ABC.m[1]-BudgetABC)
+ (RV_xSQ01ABC.m[1]<- sqrt(sum(V_xSQ01ABC.m[2:4]^2)))
+ (BFDra_xSQ01ABC.m[1]<-BFD_xSQ01ABC.m[1]/RV_xSQ01ABC.m[1])
+ (PrBFDra_xSQ01ABC.m[1]<-pnorm(BFDra_xSQ01ABC.m[1]))
+ (AA_xSQ01ABC.m[2]<-AA_xSQ01ABC.m[1]+c(33852.96))#Y-e.f.&ctr.after Q2
+ (RE_xSQ01ABC.m[2]<- sum(E_xSQ01ABC.m[3:4]))
+ (CF_xSQ01ABC.m[2]<-AA_xSQ01ABC.m[2]+RE_xSQ01ABC.m[2])
+ (BFD_xSQ01ABC.m[2]<-CF_xSQ01ABC.m[2]-BudgetABC)
+ (RV_xSQ01ABC.m[2]<- sqrt(sum(V_xSQ01ABC.m[3:4]^2)))
+ (BFDra_xSQ01ABC.m[2]<-BFD_xSQ01ABC.m[2]/RV_xSQ01ABC.m[2])
+ (PrBFDra_xSQ01ABC.m[2]<-pnorm(BFDra_xSQ01ABC.m[2]))
+
+
+```
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
