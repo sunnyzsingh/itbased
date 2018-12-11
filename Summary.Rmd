@@ -1,0 +1,37 @@
+---
+title: "IT-Based Management Summary"
+author: "Group 06"
+date: "11 12 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Forecasting and Probalistic Budgeting: Sales Volume Context (Learning with Case Studies)
+\section{Use Case}
+It is about Candle Manufacturing Inc. company, which produce three different candles like molded candles, solid candles and pulled candles. The company needs to setup the annual sales budget for the next year. To accomplish this, the traditional \textit{time series-based forecasting} methods are applied and two new approaches has been introduced: \newline
+\textit{multinominal reggression-based} \newline
+\textit{stochastic process-based forecasting of time series}\newline
+To answer question about sales volumes that can expected for next year, the R software package are used as we can 
+\begin{itemize}
+\item perform a traditional time series analysis and use the model for \textbf{time series-based forecasting} for the next year
+\item use timely intervals and perform a \textbf{regression-based forecasting}
+\item read monthly sales from transactional data
+\item perform a \textbf{stochastic process-based forecasting}
+\end{itemize}
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
