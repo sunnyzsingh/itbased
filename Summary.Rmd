@@ -7,6 +7,9 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+install.packages("xts", repos="http://cloud.r-project.org")
+
+
 ```
 
 ## Forecasting and Probalistic Budgeting: Sales Volume Context (Learning with Case Studies)
@@ -36,18 +39,79 @@ The new artifacts are mathematically modeled and their applications are demonstr
 \section{Research literature}
 Hyndman Rob/Athanasopoulos George: Forecasting Principles and
 Practice
-Lawrence Michael/O???Connor Marcus: Sales forecasting updates:
+Lawrence Michael/O'Connor Marcus: Sales forecasting updates:
 how good are they in practice?
-```{r cars}
-summary(cars)
+
+\newpage
+\section{Implementation}
+\subsection{Task 1}
+Importing and analyzing daily sales data and plotting of xSD01.xts
+```{r Plotxts, collapse=TRUE}
+library(xts)
+xSD01.xts<-readRDS("DataCMI")
+str(xSD01.xts)
+plot(xSD01.xts, main="Daily sales volumes \n Overall ABC=Blue,  A=Black,  B=red, C=Green")
+
+
 ```
 
-## Including Plots
+\subsection{Task 2}
+ Forecasting daily sales volumes by using automated procedures in forecasting packages
+```{r forcast, collapse=TRUE, fig.height = 3, fig.width = 5}
+library(forecast)
+plot(forecast(as.ts(xSD01.xts)))
+plot(forecast(as.ts(xSD01.xts),100))
+xSD01.fc<-forecast(as.ts(xSD01.xts),100)
+attributes(xSD01.fc)
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+```{r}
+xSD01.fc$method
+xSD01.fc$method
+```
+Interpretation: Planning horizon (plan period) of 100 days already shows exploding
+uncertainties of ABC, B and C
+\subsection{Task 3}
+Including additional (predictable) variables into the TS data set
+
+```{r AdditionalVariables}
+xSD01Ext.xts<-NULL # Extracting date information from xts-object
+xSD01Ext.xts<-xSD01.xts
+xSD01Ext.xts$Year<-as.factor(format(index(xSD01.xts),"%Y"))
+xSD01Ext.xts$Quarter<-as.factor(quarters(index(xSD01.xts)))
+xSD01Ext.xts$Month<-format(index(xSD01.xts),"%m")
+xSD01Ext.xts$wDay<-format(index(xSD01.xts),"%u")
+```
+\subsection{Task 4}
+ Performing numeric regressions
+Numeric regression: Regressing daily sales volumes against numeric variables
+
+```{r NumericRegression}
+xSD01ABC.svlm <- NULL # Single variable linear model (svlm)
+xSD01ABC.svlm <- lm(ABC~wDay,xSD01Ext.xts)
+summary(xSD01ABC.svlm)
+```
+\newpage
+\subsection{Task 5}
+Performing multinomial regressions
+Multinomial (factor) regression: Regressing daily sales volumes against categorical
+variables
+
+```{r Factor}
+xSD01ABC.sflm <- NULL # Single factor linear model (sflm)
+xSD01ABC.sflm <- lm(ABC~as.factor(wDay),xSD01Ext.xts)
+summary(xSD01ABC.sflm)
+```
+
+```{r attributes}
+attributes(xSD01ABC.sflm)
+```
+
+```{r plot, collapse=TRUE, fig.height = 3, fig.width = 5}
+plot(xSD01ABC.svlm$residuals) # Plotting svlm & sflm residuals
+plot(xSD01ABC.sflm$residuals)
+```
+
