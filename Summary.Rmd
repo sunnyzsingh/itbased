@@ -20,8 +20,24 @@ To answer question about sales volumes that can expected for next year, the R so
 \item use timely intervals and perform a \textbf{regression-based forecasting}
 \item read monthly sales from transactional data
 \item perform a \textbf{stochastic process-based forecasting}
+\item derive year-end forecast in fixed-event form
+\item budget-forecast deviation with p-value to perform adjustments
 \end{itemize}
 
+\section {Problem Statement}
+As there is uncertainity in business environment, the future predictation of sales volumes is also uncertain and time series-based approch forecast data with the help of historical data. It is not clear which time-based approch should be used in R to produce unbiased data. The two new approaches that are mentioned above allow additional forecast updating which are not possible in time series-based approches. Updating feature is very important in the fixed-event forecasting\footnote{ In the management control the fixed-event forecasts are the year-end forecasts} context as fixed time period is considered over time leading to a successively reducing of the lead time. 
+\section {Contribution}
+Traditional time series analysis covers the range between decomposition approaches, where non-stationary trends and seasonalities are included, and stationary ARIMA approaches. By introducing new modeling techniques in form of the multinomial regression-based and the stochastic processbased forecasting methods the time series modeling repertoire can be extended in
+an effective and easy to grasp way.
+## Result
+Multinomial regression-based and stochastic processbased forecasting are mathematically defined and statistically calibrated.
+\section{Research Methodology}
+The new artifacts are mathematically modeled and their applications are demonstrated in numerical examples.
+\section{Research literature}
+Hyndman Rob/Athanasopoulos George: Forecasting Principles and
+Practice
+Lawrence Michael/O???Connor Marcus: Sales forecasting updates:
+how good are they in practice?
 ```{r cars}
 summary(cars)
 ```
